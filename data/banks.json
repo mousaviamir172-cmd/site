@@ -1,0 +1,7 @@
+[
+  { "id": "b1", "name": "بانک ملت", "balance": 456543000, "lastUpdate": null },
+  { "id": "b2", "name": "بانک پارسیان", "balance": 655645000, "lastUpdate": null },
+  { "id": "b3", "name": "بانک شهر", "balance": 54645000, "lastUpdate": null },
+  { "id": "b4", "name": "بانک تجارت", "balance": 6456000, "lastUpdate": null },
+  { "id": "b5", "name": "بانک مهر ایران", "balance": 6456546646, "lastUpdate": null }
+]
