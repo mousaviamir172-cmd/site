@@ -1,0 +1,9 @@
+{
+  "name": "refi-petro-finportal",
+  "version": "1.0.0",
+  "description": "پرتال مالی و اداری - نسخه‌ی نمایشی",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
