@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ورود به سامانه</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/landing.css" />
+<link rel="stylesheet" href="/login.css" />
+</head>
+<body>
+
+  <div class="scene">
+    <div class="glow glow-a"></div>
+    <div class="glow glow-b"></div>
+    <div class="glow glow-c"></div>
+    <div class="grain"></div>
+
+    <main class="hero login-hero">
+      <img src="/assets/logo.png" alt="پترو صنعت جنوب" class="login-logo" />
+
+      <h1 id="loginTitle">ورود</h1>
+      <p class="lede" id="loginSub">لطفاً نام کاربری و رمز عبور را وارد کنید</p>
+
+      <form class="login-card" id="loginForm">
+        <label class="field">
+          <span>نام کاربری</span>
+          <input type="text" name="username" autocomplete="username" required />
+        </label>
+        <label class="field">
+          <span>رمز عبور</span>
+          <input type="password" name="password" autocomplete="current-password" required />
+        </label>
+
+        <div class="form-error" id="formError" hidden></div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">ورود</button>
+      </form>
+
+      <a href="/" class="back-link-2">← بازگشت به درگاه ورود</a>
+    </main>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const role = params.get('role') === 'editor' ? 'editor' : 'viewer';
+
+    document.getElementById('loginTitle').textContent = role === 'editor' ? 'ورود به بخش ویرایش' : 'ورود به بخش مشاهده';
+    document.getElementById('loginSub').textContent = role === 'editor'
+      ? 'این بخش فقط برای کاربران مجاز ویرایش است'
+      : 'برای مشاهده‌ی گزارش‌های مالی وارد شوید';
+
+    const form = document.getElementById('loginForm');
+    const errorBox = document.getElementById('formError');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorBox.hidden = true;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'در حال بررسی...';
+
+      const fd = new FormData(form);
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            role,
+            username: fd.get('username'),
+            password: fd.get('password'),
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          errorBox.textContent = data.error || 'نام کاربری یا رمز عبور اشتباه است';
+          errorBox.hidden = false;
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'ورود';
+          return;
+        }
+        window.location.href = '/dashboard.html';
+      } catch (err) {
+        errorBox.textContent = 'خطا در ارتباط با سرور';
+        errorBox.hidden = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'ورود';
+      }
+    });
+  </script>
+</body>
+</html>
