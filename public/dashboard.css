@@ -1,0 +1,204 @@
+:root {
+  --paper: #F6F8F7;
+  --card: #FFFFFF;
+  --line: #E3E9E7;
+  --ink: #1E2624;
+  --ink-soft: #6B7A76;
+  --ink-faint: #99A6A2;
+
+  --teal: #12897F;
+  --teal-deep: #0C6960;
+  --teal-tint: #E3F3F1;
+
+  --income: #1E8E5A;
+  --income-tint: #E5F5EC;
+  --expense: #C0392B;
+  --expense-tint: #FBEAE8;
+  --amber: #D98B2C;
+  --amber-tint: #FBF0DF;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --shadow: 0 1px 2px rgba(20,30,28,0.04), 0 10px 30px rgba(20,30,28,0.05);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Vazirmatn', sans-serif;
+  font-size: 14.5px;
+  line-height: 1.7;
+}
+
+.app-hidden { visibility: hidden; }
+
+button, input, select { font-family: inherit; }
+
+.topbar {
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+}
+
+.topbar-brand h1 {
+  font-size: 16.5px;
+  margin: 0;
+  font-weight: 700;
+}
+
+.topbar-brand p {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin: 2px 0 0;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mode-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: var(--teal-tint);
+  color: var(--teal-deep);
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.icon-btn:hover { background: var(--paper); color: var(--ink); }
+.icon-btn-danger:hover { color: var(--expense); border-color: var(--expense); }
+
+.main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 32px 24px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.report-head-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--teal);
+  font-weight: 600;
+}
+
+.report-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.btn-primary { background: var(--teal); color: #fff; }
+.btn-primary:hover { background: var(--teal-deep); }
+.btn-outline { background: var(--card); border-color: var(--line); color: var(--ink-soft); }
+.btn-outline:hover { background: var(--paper); }
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.report-head h2 { font-size: 26px; margin: 0 0 8px; font-weight: 800; }
+
+.last-update {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.8px;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 22px 24px;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.panel-head h3 { margin: 0; font-size: 15.5px; font-weight: 700; }
+.panel-head p { margin: 2px 0 0; font-size: 12.5px; color: var(--ink-soft); }
+
+.panel-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--teal-tint);
+  color: var(--teal-deep);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel-head > div:first-child, .panel-head .panel-icon + div { display: flex; align-items: flex-start; gap: 10px; }
+.banks-panel .panel-head { align-items: flex-start; }
+
+.filter
