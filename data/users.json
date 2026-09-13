@@ -1,0 +1,12 @@
+{
+  "viewer": {
+    "username": "viewer",
+    "salt": "19f49436ea0c884f43c849de565c1d90",
+    "hash": "e2b5292dfe10e00e6408943459041bc8801e7fef2e3ad5fcfaa28760d5d1ef70e08767f258f2a11daa6994619fb366a182a78d123e6a88bd28e592c55401d2f8"
+  },
+  "editor": {
+    "username": "editor",
+    "salt": "efb0c5e9077b87cb5e2f9985095ee90f",
+    "hash": "c8e4b81bcd4eee9d3ed4d6fcba94aab1132218a61b3c126f2d450ab1ef67fcea2ed93958035c978cb590ba7cdbb5e71ecf491338197e4e0c4f7701092f348a7a"
+  }
+}
