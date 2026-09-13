@@ -115,3 +115,264 @@ async function renderLastUpdate() {
   const el = document.getElementById('lastUpdateText');
   if (CURRENT_ROLE === 'editor') {
     const now = new Date();
+    const iso = now.toISOString().slice(0, 10);
+    const time = now.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+    el.textContent = `${Jalali.formatIsoLong(iso)} ساعت ${Jalali.toFaDigits(time)}`;
+  } else {
+    try {
+      const meta = await api('/api/meta');
+      if (!meta.lastUpdate) {
+        el.textContent = 'هنوز به‌روزرسانی ثبت نشده است';
+        return;
+      }
+      const d = new Date(meta.lastUpdate);
+      const iso = d.toISOString().slice(0, 10);
+      const time = d.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+      el.textContent = `${Jalali.formatIsoLong(iso)} ساعت ${Jalali.toFaDigits(time)}`;
+    } catch (e) {
+      el.textContent = '—';
+    }
+  }
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
+async function refresh() {
+  const from = fromPicker.getIso();
+  const to = toPicker.getIso();
+  document.getElementById('activeRangeText').textContent =
+    `بازهٔ فعال: ${Jalali.formatIsoToJalali(from)} تا ${Jalali.formatIsoToJalali(to)}`;
+
+  const [summary, transactions, banks] = await Promise.all([
+    api(`/api/summary?from=${from}&to=${to}`),
+    api(`/api/transactions?from=${from}&to=${to}`),
+    api('/api/banks'),
+  ]);
+
+  LAST_TX = transactions;
+  LAST_BANKS = banks;
+
+  renderKpis(summary);
+  renderBanks(banks);
+  renderTransactions(transactions);
+}
+
+function renderKpis(summary) {
+  document.getElementById('kpiRatio').textContent = Jalali.toFaDigits(summary.ratio) + '٪';
+  document.getElementById('kpiExpense').textContent = fmt.format(summary.expense) + ' تومان';
+  document.getElementById('kpiIncome').textContent = fmt.format(summary.income) + ' تومان';
+  document.getElementById('kpiBalance').textContent = fmt.format(summary.banksTotal) + ' تومان';
+
+  const pct = Math.min(summary.ratio, 100);
+  document.getElementById('pulsePercent').textContent = Jalali.toFaDigits(summary.ratio) + '٪';
+  document.getElementById('pulseBarFill').style.width = pct + '%';
+}
+
+function renderBanks(banks) {
+  const body = document.getElementById('banksBody');
+  body.innerHTML = '';
+  let total = 0;
+  for (const b of banks) {
+    total += b.balance;
+    const tr = document.createElement('tr');
+    const lastUpdate = b.lastUpdate ? Jalali.formatIsoToJalali(b.lastUpdate.slice(0, 10)) : '—';
+    tr.innerHTML = `
+      <td>${escapeHtml(b.name)}</td>
+      <td>
+        ${CURRENT_ROLE === 'editor'
+          ? `<input class="bank-balance-input" type="number" value="${b.balance}" data-id="${b.id}" />`
+          : `${fmt.format(b.balance)} تومان`}
+      </td>
+      <td>${lastUpdate}</td>
+      <td class="editor-only-col"><button class="row-delete" data-bank-id="${b.id}">حذف</button></td>
+    `;
+    body.appendChild(tr);
+  }
+  document.getElementById('banksTotal').textContent = fmt.format(total) + ' تومان';
+
+  if (CURRENT_ROLE === 'editor') {
+    body.querySelectorAll('.bank-balance-input').forEach((input) => {
+      input.addEventListener('change', async () => {
+        try {
+          await api(`/api/banks/${input.dataset.id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ balance: Number(input.value) }),
+          });
+          await refresh();
+          await renderLastUpdate();
+        } catch (e) {
+          alert(e.message);
+        }
+      });
+    });
+    body.querySelectorAll('[data-bank-id]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('این بانک حذف شود؟')) return;
+        await api(`/api/banks/${btn.dataset.bankId}`, { method: 'DELETE' });
+        await refresh();
+        await renderLastUpdate();
+      });
+    });
+  }
+}
+
+function renderTransactions(transactions) {
+  const body = document.getElementById('txBody');
+  const empty = document.getElementById('emptyState');
+  body.innerHTML = '';
+  empty.style.display = transactions.length ? 'none' : 'block';
+
+  for (const t of transactions) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(t.title)}</td>
+      <td><span class="tag">${escapeHtml(t.category)}</span></td>
+      <td>${Jalali.formatIsoToJalali(t.date)}</td>
+      <td class="amount-cell ${t.type}">${t.type === 'income' ? '+' : '−'} ${fmt.format(t.amount)} تومان</td>
+      <td class="editor-only-col"><button class="row-delete" data-tx-id="${t.id}">حذف</button></td>
+    `;
+    body.appendChild(tr);
+  }
+
+  if (CURRENT_ROLE === 'editor') {
+    body.querySelectorAll('[data-tx-id]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('این تراکنش حذف شود؟')) return;
+        await api(`/api/transactions/${btn.dataset.txId}`, { method: 'DELETE' });
+        await refresh();
+        await renderLastUpdate();
+      });
+    });
+  }
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function wireEvents() {
+  document.getElementById('applyFilterBtn').addEventListener('click', refresh);
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await api('/api/logout', { method: 'POST' });
+    window.location.href = '/index.html';
+  });
+
+  const txForm = document.getElementById('txForm');
+  document.getElementById('openTxFormBtn').addEventListener('click', () => openModal('modalBackdrop'));
+  document.getElementById('openTxFormBtn2').addEventListener('click', () => openModal('modalBackdrop'));
+  document.getElementById('closeFormBtn').addEventListener('click', () => closeModal('modalBackdrop'));
+  document.getElementById('cancelFormBtn').addEventListener('click', () => closeModal('modalBackdrop'));
+  txForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(txForm);
+    try {
+      await api('/api/transactions', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: fd.get('title'),
+          amount: Number(fd.get('amount')),
+          type: fd.get('type'),
+          category: fd.get('category') || 'سایر',
+          date: txDatePicker.getIso(),
+        }),
+      });
+      closeModal('modalBackdrop');
+      txForm.reset();
+      await refresh();
+      await renderLastUpdate();
+    } catch (err) {
+      alert(err.message);
+    }
+  });
+
+  const bankForm = document.getElementById('bankForm');
+  document.getElementById('addBankBtn').addEventListener('click', () => {
+    document.getElementById('bankModalTitle').textContent = 'افزودن بانک';
+    bankForm.reset();
+    openModal('bankModalBackdrop');
+  });
+  document.getElementById('closeBankFormBtn').addEventListener('click', () => closeModal('bankModalBackdrop'));
+  document.getElementById('cancelBankFormBtn').addEventListener('click', () => closeModal('bankModalBackdrop'));
+  bankForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(bankForm);
+    try {
+      await api('/api/banks', {
+        method: 'POST',
+        body: JSON.stringify({ name: fd.get('name'), balance: Number(fd.get('balance')) }),
+      });
+      closeModal('bankModalBackdrop');
+      bankForm.reset();
+      await refresh();
+      await renderLastUpdate();
+    } catch (err) {
+      alert(err.message);
+    }
+  });
+
+  const pwForm = document.getElementById('pwForm');
+  const pwError = document.getElementById('pwFormError');
+  const pwSuccess = document.getElementById('pwFormSuccess');
+  document.getElementById('changePwBtn').addEventListener('click', () => {
+    pwForm.reset();
+    pwError.hidden = true;
+    pwSuccess.hidden = true;
+    openModal('pwModalBackdrop');
+  });
+  document.getElementById('closePwFormBtn').addEventListener('click', () => closeModal('pwModalBackdrop'));
+  document.getElementById('cancelPwFormBtn').addEventListener('click', () => closeModal('pwModalBackdrop'));
+  pwForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    pwError.hidden = true;
+    pwSuccess.hidden = true;
+    const fd = new FormData(pwForm);
+    const newPassword = fd.get('newPassword');
+    const confirmPassword = fd.get('confirmPassword');
+    if (newPassword !== confirmPassword) {
+      pwError.textContent = 'رمز جدید و تکرار آن یکسان نیستند';
+      pwError.hidden = false;
+      return;
+    }
+    try {
+      await api('/api/change-password', {
+        method: 'POST',
+        body: JSON.stringify({ oldPassword: fd.get('oldPassword'), newPassword }),
+      });
+      pwSuccess.hidden = false;
+      pwForm.reset();
+      setTimeout(() => closeModal('pwModalBackdrop'), 1400);
+    } catch (err) {
+      pwError.textContent = err.message;
+      pwError.hidden = false;
+    }
+  });
+
+  document.getElementById('printBtn').addEventListener('click', () => window.print());
+  document.getElementById('exportBtn').addEventListener('click', exportExcel);
+}
+
+function exportExcel() {
+  const wb = XLSX.utils.book_new();
+
+  const bankRows = [['نام بانک', 'موجودی (تومان)', 'آخرین ثبت']];
+  LAST_BANKS.forEach((b) => {
+    bankRows.push([b.name, b.balance, b.lastUpdate ? Jalali.formatIsoToJalali(b.lastUpdate.slice(0, 10)) : '']);
+  });
+  const wsBanks = XLSX.utils.aoa_to_sheet(bankRows);
+  XLSX.utils.book_append_sheet(wb, wsBanks, 'موجودی بانک‌ها');
+
+  const txRows = [['شرح تراکنش', 'دسته‌بندی', 'تاریخ', 'نوع', 'مبلغ (تومان)']];
+  LAST_TX.forEach((t) => {
+    txRows.push([t.title, t.category, Jalali.formatIsoToJalali(t.date), t.type === 'income' ? 'درآمد' : 'هزینه', t.amount]);
+  });
+  const wsTx = XLSX.utils.aoa_to_sheet(txRows);
+  XLSX.utils.book_append_sheet(wb, wsTx, 'تراکنش‌ها');
+
+  XLSX.writeFile(wb, 'گزارش-مالی-پترو-صنعت-جنوب.xlsx');
+}
+
+init();
