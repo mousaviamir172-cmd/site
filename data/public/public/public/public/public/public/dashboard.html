@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>گزارش مالی — پترو صنعت جنوب</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/dashboard.css" />
+</head>
+<body>
+
+  <div id="app" class="app-hidden">
+
+    <!-- Header -->
+    <header class="topbar">
+      <div class="topbar-brand">
+        <img src="/assets/logo.png" alt="لوگو" class="brand-logo" />
+        <div>
+          <h1>امور مالی پترو صنعت جنوب</h1>
+          <p>سامانه گزارش مالی داخلی</p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <span class="mode-badge" id="modeBadge">—</span>
+        <button class="icon-btn" id="changePwBtn" title="تغییر رمز">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 7a4 4 0 1 0-4.9 3.9L4 17v3h3l6.1-6.1A4 4 0 0 0 15 7z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          تغییر رمز
+        </button>
+        <button class="icon-btn icon-btn-danger" id="logoutBtn" title="خروج">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          خروج
+        </button>
+      </div>
+    </header>
+
+    <main class="main">
+
+      <!-- Report heading -->
+      <section class="report-head">
+        <div class="report-head-top">
+          <span class="eyebrow">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M3 12h4l3 8 4-16 3 8h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            نمای کلی گزارش
+          </span>
+          <div class="report-actions" id="editorActions">
+            <button class="btn btn-outline" id="printBtn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M6 14h12v7H6v-7z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              چاپ گزارش
+            </button>
+            <button class="btn btn-outline" id="exportBtn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              دریافت اکسل
+            </button>
+            <button class="btn btn-primary" id="openTxFormBtn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 20l1.1-4L16.5 4.6a1.5 1.5 0 0 1 2.1 0l.8.8a1.5 1.5 0 0 1 0 2.1L8 18l-4 2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              ویرایش گزارش
+            </button>
+          </div>
+        </div>
+        <h2>گزارش مالی روز جاری</h2>
+        <p class="last-update">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 8v4l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/></svg>
+          آخرین به‌روزرسانی: <span id="lastUpdateText">—</span>
+        </p>
+      </section>
+
+      <!-- Date range filter -->
+      <section class="panel filter-panel">
+        <div class="filter-head">
+          <h3>بازه زمانی گزارش</h3>
+          <p>از یک ماه گذشته تا امروز انتخاب کنید؛ مبلغ‌ها و جدول با همین بازه نمایش داده می‌شوند.</p>
+        </div>
+        <div class="filter-controls">
+          <div class="jalali-field">
+            <span>از تاریخ</span>
+            <div class="jalali-select-group" id="fromPicker"></div>
+          </div>
+          <div class="jalali-field">
+            <span>تا تاریخ</span>
+            <div class="jalali-select-group" id="toPicker"></div>
+          </div>
+          <button class="btn btn-primary" id="applyFilterBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 12a9 9 0 1 1-2.6-6.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M21 3v6h-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            به‌روزرسانی
+          </button>
+        </div>
+        <p class="active-range" id="activeRangeText"></p>
+      </section>
+
+      <!-- KPI cards -->
+      <section class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-icon kpi-icon-ratio">%</span>
+          <span class="kpi-label">نسبت هزینه به درآمد</span>
+          <span class="kpi-value" id="kpiRatio">۰٪</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-icon kpi-icon-expense">↗</span>
+          <span class="kpi-label">پرداختی در بازه انتخابی</span>
+          <span class="kpi-value" id="kpiExpense">۰ تومان</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-icon kpi-icon-income">↙</span>
+          <span class="kpi-label">واریزی در بازه انتخابی</span>
+          <span class="kpi-value" id="kpiIncome">۰ تومان</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-icon kpi-icon-balance">✉</span>
+          <span class="kpi-label">مانده قابل استفاده</span>
+          <span class="kpi-value" id="kpiBalance">۰ تومان</span>
+        </div>
+      </section>
+
+      <!-- Pulse + banks -->
+      <section class="split-grid">
+        <div class="pulse-card">
+          <span class="pulse-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 12h4l2 7 4-14 2 7h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <h3>نبض مالی مجموعه</h3>
+          <p class="pulse-sub">مروری سریع بر هزینه‌های ثبت‌شده در بازه انتخابی</p>
+          <div class="pulse-row">
+            <span id="pulsePercent">۰٪</span>
+            <span>هزینه‌های دوره</span>
+          </div>
+          <div class="pulse-bar"><div class="pulse-bar-fill" id="pulseBarFill"></div></div>
+          <p class="pulse-note">با تغییر بازه، جمع واریزی و پرداختی به‌صورت واقعی محاسبه می‌شود.</p>
+        </div>
+
+        <div class="panel banks-panel">
+          <div class="panel-head">
+            <span class="panel-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3l8 4v2H4V7l8-4z" fill="currentColor"/><path d="M5 10v8M9 10v8M15 10v8M19 10v8" stroke="currentColor" stroke-width="1.7"/><path d="M4 20h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            </span>
+            <div>
+              <h3>موجودی حساب‌های بانکی</h3>
+              <p>مانده ثبت‌شده به تفکیک بانک</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>نام بانک</th><th>موجودی</th><th>آخرین ثبت</th><th class="editor-only-col"></th></tr>
+              </thead>
+              <tbody id="banksBody"></tbody>
+              <tfoot>
+                <tr class="total-row">
+                  <td>جمع موجودی بانک‌ها</td>
+                  <td id="banksTotal">۰ تومان</td>
+                  <td></td>
+                  <td class="editor-only-col"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <button class="add-row-btn editor-only" id="addBankBtn">+ افزودن بانک</button>
+        </div>
+      </section>
+
+      <!-- Transactions -->
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h3>ریز واریزی‌ها و پرداختی‌ها</h3>
+            <p>تراکنش‌های ثبت‌شده در بازه انتخابی</p>
+          </div>
+          <button class="link-btn editor-only" id="openTxFormBtn2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 20l1.1-4L16.5 4.6a1.5 1.5 0 0 1 2.1 0l.8.8a1.5 1.5 0 0 1 0 2.1L8 18l-4 2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+            ویرایش ریز تراکنش‌ها
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>شرح تراکنش</th><th>دسته‌بندی</th><th>تاریخ</th><th>مبلغ</th><th class="editor-only-col"></th></tr>
+            </thead>
+            <tbody id="txBody"></tbody>
+          </table>
+          <div class="empty-state" id="emptyState">در این بازه‌ی زمانی تراکنشی ثبت نشده است.</div>
+        </div>
+      </section>
+
+      <p class="print-footer">این گزارش به‌صورت خودکار از سامانه مالی داخلی پترو صنعت جنوب تهیه شده است.</p>
+    </main>
+  </div>
+
+  <!-- Transaction modal (editor only) -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <form class="modal" id="txForm">
+      <div class="modal-head">
+        <h3>ثبت تراکنش جدید</h3>
+        <button type="button" class="modal-close" id="closeFormBtn">✕</button>
+      </div>
+
+      <label class="field">
+        <span>عنوان</span>
+        <input type="text" name="title" placeholder="مثلاً: پرداخت قبض برق" required />
+      </label>
+
+      <div class="field-row">
+        <label class="field">
+          <span>مبلغ (تومان)</span>
+          <input type="number" name="amount" placeholder="۰" min="0" required />
+        </label>
+        <label class="field">
+          <span>نوع</span>
+          <select name="type">
+            <option value="expense">هزینه</option>
+            <option value="income">درآمد</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="field-row">
+        <label class="field">
+          <span>دسته‌بندی</span>
+          <input type="text" name="category" placeholder="مثلاً: عملیاتی" />
+        </label>
+        <label class="field">
+          <span>تاریخ (شمسی)</span>
+          <div class="jalali-select-group" id="txDatePicker"></div>
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" id="cancelFormBtn">انصراف</button>
+        <button type="submit" class="btn btn-primary">ذخیره</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Bank edit modal (editor only) -->
+  <div class="modal-backdrop" id="bankModalBackdrop">
+    <form class="modal" id="bankForm">
+      <div class="modal-head">
+        <h3 id="bankModalTitle">افزودن بانک</h3>
+        <button type="button" class="modal-close" id="closeBankFormBtn">✕</button>
+      </div>
+      <label class="field">
+        <span>نام بانک</span>
+        <input type="text" name="name" required />
+      </label>
+      <label class="field">
+        <span>موجودی (تومان)</span>
+        <input type="number" name="balance" required />
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" id="cancelBankFormBtn">انصراف</button>
+        <button type="submit" class="btn btn-primary">ذخیره</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Change password modal -->
+  <div class="modal-backdrop" id="pwModalBackdrop">
+    <form class="modal" id="pwForm">
+      <div class="modal-head">
+        <h3>تغییر رمز عبور</h3>
+        <button type="button" class="modal-close" id="closePwFormBtn">✕</button>
+      </div>
+      <label class="field">
+        <span>رمز فعلی</span>
+        <input type="password" name="oldPassword" required />
+      </label>
+      <label class="field">
+        <span>رمز جدید</span>
+        <input type="password" name="newPassword" required minlength="4" />
+      </label>
+      <label class="field">
+        <span>تکرار رمز جدید</span>
+        <input type="password" name="confirmPassword" required minlength="4" />
+      </label>
+      <div class="form-error" id="pwFormError" hidden></div>
+      <div class="form-success" id="pwFormSuccess" hidden>رمز عبور با موفقیت تغییر کرد.</div>
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" id="cancelPwFormBtn">انصراف</button>
+        <button type="submit" class="btn btn-primary">ذخیره رمز جدید</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="/jalali.js"></script>
+  <script src="/dashboard.js"></script>
+</body>
+</html>
