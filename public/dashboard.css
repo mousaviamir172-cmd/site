@@ -519,3 +519,19 @@ body.role-editor .editor-only-col { display: table-cell; }
   .main { padding: 22px 14px 50px; }
   .field-row { flex-direction: column; }
 }
+
+
+.note-box {
+  margin-top: 16px;
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  font-size: 12.8px;
+  line-height: 1.9;
+  color: var(--ink-soft);
+}
+.note-box strong {
+  color: var(--ink);
+  margin-left: 6px;
+}
