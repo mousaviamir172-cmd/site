@@ -37,6 +37,7 @@ html, body {
 
 button, input, select { font-family: inherit; }
 
+/* ---------- Topbar ---------- */
 .topbar {
   background: var(--card);
   border-bottom: 1px solid var(--line);
@@ -103,6 +104,7 @@ button, input, select { font-family: inherit; }
 .icon-btn:hover { background: var(--paper); color: var(--ink); }
 .icon-btn-danger:hover { color: var(--expense); border-color: var(--expense); }
 
+/* ---------- Main layout ---------- */
 .main {
   max-width: 1180px;
   margin: 0 auto;
@@ -112,6 +114,7 @@ button, input, select { font-family: inherit; }
   gap: 22px;
 }
 
+/* ---------- Report head ---------- */
 .report-head-top {
   display: flex;
   justify-content: space-between;
@@ -168,6 +171,7 @@ button, input, select { font-family: inherit; }
   margin: 0;
 }
 
+/* ---------- Panels ---------- */
 .panel {
   background: var(--card);
   border: 1px solid var(--line);
@@ -201,6 +205,7 @@ button, input, select { font-family: inherit; }
 .panel-head > div:first-child, .panel-head .panel-icon + div { display: flex; align-items: flex-start; gap: 10px; }
 .banks-panel .panel-head { align-items: flex-start; }
 
+/* ---------- Filter panel ---------- */
 .filter-panel .filter-head h3 { margin: 0 0 4px; font-size: 15px; font-weight: 700; }
 .filter-panel .filter-head p { margin: 0 0 16px; font-size: 12.8px; color: var(--ink-soft); }
 
@@ -236,6 +241,7 @@ button, input, select { font-family: inherit; }
   color: var(--ink-faint);
 }
 
+/* ---------- KPI cards ---------- */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -271,6 +277,7 @@ button, input, select { font-family: inherit; }
 .kpi-label { font-size: 12.5px; color: var(--ink-soft); }
 .kpi-value { font-size: 21px; font-weight: 800; font-variant-numeric: tabular-nums; }
 
+/* ---------- Split grid: pulse + banks ---------- */
 .split-grid {
   display: grid;
   grid-template-columns: 320px 1fr;
@@ -333,6 +340,7 @@ button, input, select { font-family: inherit; }
   color: #8FA6A1;
 }
 
+/* ---------- Tables ---------- */
 .table-wrap { overflow-x: auto; }
 
 table { width: 100%; border-collapse: collapse; }
@@ -432,12 +440,62 @@ tbody tr:last-child td { border-bottom: none; }
   font-size: 13.5px;
 }
 
+/* ---------- Notes (single free-text box) ---------- */
+.note-view {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 13.5px;
+  line-height: 1.9;
+  color: var(--ink-soft);
+}
+.note-edit {
+  display: none;
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 13.5px;
+  line-height: 1.8;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+.note-edit:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
+body.role-editor .note-edit { display: block; }
+.note-save-btn { display: none; padding: 9px 16px; font-size: 13px; }
+body.role-editor .note-save-btn { display: inline-flex; }
+
+/* ---------- Editable text input inside a table row (budget name) ---------- */
+.row-text-input {
+  border: 1px solid transparent;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13.5px;
+  width: 100%;
+  min-width: 140px;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+.row-text-input:hover, .row-text-input:focus {
+  border-color: var(--line);
+  background: var(--paper);
+  outline: none;
+}
+
+/* ---------- View-only mode ---------- */
 .editor-only, .editor-only-col { display: none; }
 body.role-editor .editor-only { display: inline-flex; }
 body.role-editor .editor-only-col { display: table-cell; }
 
+.viewer-only { display: block; }
+body.role-editor .viewer-only { display: none; }
+
 .print-footer { display: none; }
 
+/* ---------- Modal ---------- */
 .modal-backdrop {
   display: none;
   position: fixed;
@@ -501,6 +559,7 @@ body.role-editor .editor-only-col { display: table-cell; }
 
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
 
+/* ---------- Print ---------- */
 @media print {
   .topbar-actions, .report-actions, .filter-panel .btn, .editor-only, .editor-only-col,
   .modal-backdrop, .add-row-btn { display: none !important; }
@@ -509,6 +568,7 @@ body.role-editor .editor-only-col { display: table-cell; }
   .panel, .kpi-card, .pulse-card { box-shadow: none; }
 }
 
+/* ---------- Responsive ---------- */
 @media (max-width: 900px) {
   .kpi-grid { grid-template-columns: 1fr 1fr; }
   .split-grid { grid-template-columns: 1fr; }
@@ -518,20 +578,4 @@ body.role-editor .editor-only-col { display: table-cell; }
   .topbar { padding: 14px 18px; }
   .main { padding: 22px 14px 50px; }
   .field-row { flex-direction: column; }
-}
-
-
-.note-box {
-  margin-top: 16px;
-  padding: 14px 18px;
-  border-radius: var(--radius-sm);
-  background: var(--paper);
-  border: 1px solid var(--line);
-  font-size: 12.8px;
-  line-height: 1.9;
-  color: var(--ink-soft);
-}
-.note-box strong {
-  color: var(--ink);
-  margin-left: 6px;
 }
