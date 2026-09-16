@@ -12,6 +12,7 @@
 
   <div id="app" class="app-hidden">
 
+    <!-- Header -->
     <header class="topbar">
       <div class="topbar-brand">
         <img src="/assets/logo.png" alt="لوگو" class="brand-logo" />
@@ -23,7 +24,7 @@
 
       <div class="topbar-actions">
         <span class="mode-badge" id="modeBadge">—</span>
-        <button class="icon-btn" id="changePwBtn" title="تغییر رمز">
+        <button class="icon-btn editor-only" id="changePwBtn" title="تغییر رمز">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 7a4 4 0 1 0-4.9 3.9L4 17v3h3l6.1-6.1A4 4 0 0 0 15 7z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
           تغییر رمز
         </button>
@@ -36,6 +37,7 @@
 
     <main class="main">
 
+      <!-- Report heading -->
       <section class="report-head">
         <div class="report-head-top">
           <span class="eyebrow">
@@ -64,6 +66,7 @@
         </p>
       </section>
 
+      <!-- Date range filter -->
       <section class="panel filter-panel">
         <div class="filter-head">
           <h3>بازه زمانی گزارش</h3>
@@ -86,6 +89,7 @@
         <p class="active-range" id="activeRangeText"></p>
       </section>
 
+      <!-- KPI cards -->
       <section class="kpi-grid">
         <div class="kpi-card">
           <span class="kpi-icon kpi-icon-ratio">%</span>
@@ -109,6 +113,7 @@
         </div>
       </section>
 
+      <!-- Pulse + banks -->
       <section class="split-grid">
         <div class="pulse-card">
           <span class="pulse-icon">
@@ -154,6 +159,7 @@
         </div>
       </section>
 
+      <!-- Transactions -->
       <section class="panel">
         <div class="panel-head">
           <div>
@@ -175,53 +181,81 @@
           <div class="empty-state" id="emptyState">در این بازه‌ی زمانی تراکنشی ثبت نشده است.</div>
         </div>
       </section>
+
+      <!-- Budget table (editable, same pattern as banks) -->
       <section class="panel budget-panel">
         <div class="panel-head">
           <div>
             <h3>صورت حساب وضعیت بودجه نقدی</h3>
-            <p>شرکت پترو صنعت جنوب</p>
+            <p>شرکت پترو صنعت جنوب — تاریخ ۲۰ مرداد ۱۴۰۵</p>
           </div>
         </div>
         <div class="table-wrap">
           <table>
             <thead>
-              <tr><th>محل تامین مالی</th><th>مصارف </th><th>تامین مالی</th><th>مانده</th></tr>
+              <tr><th>محل تامین مالی</th><th>مصارف شعبه</th><th>تامین مالی</th><th>مانده</th><th class="editor-only-col"></th></tr>
             </thead>
-            <tbody>
-              <tr><td>تامین مالی خارج از پروژه</td><td>—</td><td>۶۱۱,۶۰۵,۴۷۰,۹۹۱</td><td class="amount-cell income">۶۱۱,۶۰۵,۴۷۰,۹۹۱</td></tr>
-              <tr><td>آبفا</td><td>۲۸۲,۳۳۶,۵۸۴,۱۰۹</td><td>۲۷۳,۱۵۲,۰۲۲,۸۹۱</td><td class="amount-cell expense">−۹,۱۸۴,۵۶۱,۲۱۸</td></tr>
-              <tr><td>اسید شویی</td><td>۳۷۵,۹۷۳,۷۴۴</td><td>—</td><td class="amount-cell expense">−۳۷۵,۹۷۳,۷۴۴</td></tr>
-              <tr><td>اصفهان</td><td>۸۹,۹۸۱,۷۳۶,۶۷۴</td><td>۴۶,۰۳۳,۴۷۰,۲۴۱</td><td class="amount-cell expense">−۴۳,۹۴۸,۲۶۶,۴۳۳</td></tr>
-              <tr><td>بندر عباس</td><td>۳۷,۳۳۷,۰۰۰,۰۰۰</td><td>—</td><td class="amount-cell expense">−۳۷,۳۳۷,۰۰۰,۰۰۰</td></tr>
-              <tr><td>تند گویان</td><td>۲۷,۴۳۴,۳۵۴,۱۴۹</td><td>۳۰,۹۱۸,۰۶۷,۷۹۹</td><td class="amount-cell income">۳,۴۸۳,۷۱۳,۶۵۰</td></tr>
-              <tr><td>دفتر مرکزی</td><td>۱۴۰,۳۴۳,۶۹۵,۸۲۲</td><td>—</td><td class="amount-cell expense">−۱۴۰,۳۴۳,۶۹۵,۸۲۲</td></tr>
-              <tr><td>زاگرس جنوبی</td><td>۲۰,۱۹۵,۶۰۷,۱۶۰</td><td>—</td><td class="amount-cell expense">−۲۰,۱۹۵,۶۰۷,۱۶۰</td></tr>
-              <tr><td>عسلویه</td><td>۸,۴۵۷,۲۳۰,۸۸۷</td><td>—</td><td class="amount-cell expense">−۸,۴۵۷,۲۳۰,۸۸۷</td></tr>
-              <tr><td>گاز پارسیان</td><td>۳۲,۹۰۳,۶۹۴,۳۲۹</td><td>۱۱۰,۳۰۴,۸۴۵,۸۱۴</td><td class="amount-cell income">۷۷,۴۰۱,۱۵۱,۴۸۵</td></tr>
-              <tr><td>نفت فلات</td><td>۴۶,۲۳۲,۲۲۶,۵۸۳</td><td>۶۴,۸۵۶,۶۷۰,۲۸۷</td><td class="amount-cell income">۱۸,۶۲۴,۴۴۳,۷۰۴</td></tr>
-              <tr><td>نفت شیراز</td><td>۱,۳۰۰,۰۰۰,۰۰۰</td><td>—</td><td class="amount-cell expense">−۱,۳۰۰,۰۰۰,۰۰۰</td></tr>
-              <tr><td>نفت لاوان</td><td>۴۱,۳۵۳,۲۳۱,۰۴۳</td><td>۸,۳۳۷,۳۵۲,۴۰۵</td><td class="amount-cell expense">−۳۳,۰۱۵,۸۷۸,۶۳۸</td></tr>
-              <tr><td>اقساط کارمزد</td><td>۲۷۹,۵۶۳,۳۸۰,۸۸۹</td><td>—</td><td class="amount-cell expense">−۲۷۹,۵۶۳,۳۸۰,۸۸۹</td></tr>
-              <tr><td>خرید خودرو</td><td>۳۸,۲۷۷,۳۰۰,۸۴۴</td><td>—</td><td class="amount-cell expense">−۳۸,۲۷۷,۳۰۰,۸۴۴</td></tr>
-              <tr><td>هنگام</td><td>۵۸۱,۰۶۲,۶۳۸,۰۴۷</td><td>۵۷۰,۰۰۰,۰۰۰,۰۰۰</td><td class="amount-cell expense">−۱۱,۰۶۲,۶۳۸,۰۴۷</td></tr>
-              <tr><td>فجر جم</td><td>۸۶۹,۷۵۸,۴۱۳</td><td>—</td><td class="amount-cell expense">−۸۶۹,۷۵۸,۴۱۳</td></tr>
-              <tr><td>پارس</td><td>۲۰۱,۸۴۹,۴۷۴,۳۰۴</td><td>۱۰۵,۷۲۴,۸۶۴,۶۹۶</td><td class="amount-cell expense">−۹۶,۱۲۴,۶۰۹,۶۰۸</td></tr>
-              <tr><td>میدوک</td><td>۳۸,۰۳۱,۵۶۸,۰۷۹</td><td>۱۱,۹۸۲,۶۲۲,۹۶۸</td><td class="amount-cell expense">−۲۶,۰۴۸,۹۴۵,۱۱۱</td></tr>
-              <tr><td>مخازن سبز</td><td>۲۵,۹۰۲,۶۱۴,۴۸۸</td><td>۳,۷۷۴,۴۳۰,۰۰۰</td><td class="amount-cell expense">−۲۲,۱۲۸,۱۸۴,۴۸۸</td></tr>
-              <tr><td>موجودی ارزی</td><td>—</td><td>—</td><td class="amount-cell">—</td></tr>
-              <tr class="total-row"><td>مانده نقد در دسترس</td><td>۱,۸۹۳,۸۰۸,۰۶۹,۵۶۴</td><td>۱,۸۳۶,۶۸۹,۸۱۸,۰۹۲</td><td class="amount-cell expense">−۵۷,۱۱۸,۲۵۱,۴۷۲</td></tr>
-            </tbody>
+            <tbody id="budgetBody"></tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td>مانده نقد در دسترس</td>
+                <td id="budgetExpenseTotal">۰</td>
+                <td id="budgetFinancingTotal">۰</td>
+                <td id="budgetBalanceTotal">۰</td>
+                <td class="editor-only-col"></td>
+              </tr>
+            </tfoot>
           </table>
         </div>
-        <div class="note-box">
-          <strong>توضیحات:</strong>
-          این جدول برگرفته از صورت‌حساب بودجه نقدی شرکت تا تاریخ ۲۰ مرداد ۱۴۰۵ است. ستون «مصارف شعبه» هزینه‌ی هر پروژه/شعبه، ستون «تامین مالی» مبلغ تأمین‌شده برای آن، و ستون «مانده» تفاوت این دو را نشان می‌دهد؛ مقادیر منفی یعنی مصرف بیشتر از تأمین مالی (کسری) و مقادیر مثبت یعنی مازاد. ردیف «مانده نقد در دسترس» جمع‌بندی کلی وضعیت نقدی شرکت است.
-        </div>
+        <button class="add-row-btn editor-only" id="addBudgetBtn">+ افزودن ردیف</button>
       </section>
+
+      <!-- Single free-text notes box, below all tables -->
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h3>توضیحات</h3>
+            <p>یادداشت آزاد درباره‌ی گزارش (بدون محدودیت طول متن)</p>
+          </div>
+        </div>
+        <p class="note-view viewer-only" id="notesView_general">—</p>
+        <textarea class="note-edit" id="notesEdit_general" placeholder="هر توضیحی درباره‌ی این گزارش لازم است اینجا بنویسید..."></textarea>
+        <button class="btn btn-outline note-save-btn" id="notesSave_general">ذخیره توضیحات</button>
+      </section>
+
       <p class="print-footer">این گزارش به‌صورت خودکار از سامانه مالی داخلی پترو صنعت جنوب تهیه شده است.</p>
     </main>
   </div>
 
+  <!-- Budget row modal (editor only) -->
+  <div class="modal-backdrop" id="budgetModalBackdrop">
+    <form class="modal" id="budgetForm">
+      <div class="modal-head">
+        <h3>افزودن ردیف بودجه</h3>
+        <button type="button" class="modal-close" id="closeBudgetFormBtn">✕</button>
+      </div>
+      <label class="field">
+        <span>محل تامین مالی</span>
+        <input type="text" name="name" required />
+      </label>
+      <div class="field-row">
+        <label class="field">
+          <span>مصارف شعبه</span>
+          <input type="number" name="expense" value="0" required />
+        </label>
+        <label class="field">
+          <span>تامین مالی</span>
+          <input type="number" name="financing" value="0" required />
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" id="cancelBudgetFormBtn">انصراف</button>
+        <button type="submit" class="btn btn-primary">ذخیره</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Transaction modal (editor only) -->
   <div class="modal-backdrop" id="modalBackdrop">
     <form class="modal" id="txForm">
       <div class="modal-head">
@@ -266,6 +300,7 @@
     </form>
   </div>
 
+  <!-- Bank edit modal (editor only) -->
   <div class="modal-backdrop" id="bankModalBackdrop">
     <form class="modal" id="bankForm">
       <div class="modal-head">
@@ -287,6 +322,7 @@
     </form>
   </div>
 
+  <!-- Change password modal -->
   <div class="modal-backdrop" id="pwModalBackdrop">
     <form class="modal" id="pwForm">
       <div class="modal-head">
@@ -318,4 +354,4 @@
   <script src="/jalali.js"></script>
   <script src="/dashboard.js"></script>
 </body>
-  
+</html>
