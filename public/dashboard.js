@@ -2,7 +2,9 @@ const fmt = new Intl.NumberFormat('fa-IR');
 let CURRENT_ROLE = null;
 let LAST_TX = [];
 let LAST_BANKS = [];
+let LAST_BUDGET = [];
 
+// ---------------- Jalali picker ----------------
 function buildJalaliPicker(container, initialIso) {
   container.innerHTML = '';
   container.dir = 'ltr';
@@ -76,6 +78,7 @@ function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
 
+// ---------------- API helpers ----------------
 async function api(path, options) {
   const res = await fetch(path, Object.assign({ headers: { 'Content-Type': 'application/json' } }, options));
   let data = null;
@@ -88,6 +91,7 @@ async function api(path, options) {
   return data;
 }
 
+// ---------------- Init ----------------
 let fromPicker, toPicker, txDatePicker;
 
 async function init() {
@@ -108,6 +112,8 @@ async function init() {
   txDatePicker = buildJalaliPicker(document.getElementById('txDatePicker'), todayIso());
 
   await refresh();
+  await refreshBudget();
+  await loadNotes();
   wireEvents();
 }
 
@@ -141,6 +147,7 @@ function escapeHtml(str) {
   }[c]));
 }
 
+// ---------------- Render ----------------
 async function refresh() {
   const from = fromPicker.getIso();
   const to = toPicker.getIso();
@@ -250,17 +257,104 @@ function renderTransactions(transactions) {
   }
 }
 
+// ---------------- Budget table (editable like banks) ----------------
+async function refreshBudget() {
+  const rows = await api('/api/budget');
+  LAST_BUDGET = rows;
+  renderBudget(rows);
+}
+
+function renderBudget(rows) {
+  const body = document.getElementById('budgetBody');
+  body.innerHTML = '';
+  let totalExpense = 0;
+  let totalFinancing = 0;
+
+  for (const row of rows) {
+    const balance = row.financing - row.expense;
+    totalExpense += row.expense;
+    totalFinancing += row.financing;
+    const balCls = balance >= 0 ? 'income' : 'expense';
+    const balSign = balance >= 0 ? '' : '−';
+    const balAbs = fmt.format(Math.abs(balance));
+
+    const tr = document.createElement('tr');
+    if (CURRENT_ROLE === 'editor') {
+      tr.innerHTML = `
+        <td><input class="row-text-input" type="text" value="${escapeHtml(row.name)}" data-id="${row.id}" data-field="name" /></td>
+        <td><input class="bank-balance-input" type="number" value="${row.expense}" data-id="${row.id}" data-field="expense" /></td>
+        <td><input class="bank-balance-input" type="number" value="${row.financing}" data-id="${row.id}" data-field="financing" /></td>
+        <td class="amount-cell ${balCls}">${balSign} ${balAbs}</td>
+        <td class="editor-only-col"><button class="row-delete" data-budget-id="${row.id}">حذف</button></td>
+      `;
+    } else {
+      tr.innerHTML = `
+        <td>${escapeHtml(row.name)}</td>
+        <td>${fmt.format(row.expense)}</td>
+        <td>${fmt.format(row.financing)}</td>
+        <td class="amount-cell ${balCls}">${balSign} ${balAbs}</td>
+        <td class="editor-only-col"></td>
+      `;
+    }
+    body.appendChild(tr);
+  }
+
+  const totalBalance = totalFinancing - totalExpense;
+  document.getElementById('budgetExpenseTotal').textContent = fmt.format(totalExpense);
+  document.getElementById('budgetFinancingTotal').textContent = fmt.format(totalFinancing);
+  const totalEl = document.getElementById('budgetBalanceTotal');
+  totalEl.textContent = (totalBalance >= 0 ? '' : '− ') + fmt.format(Math.abs(totalBalance));
+  totalEl.className = totalBalance >= 0 ? 'amount-cell income' : 'amount-cell expense';
+
+  if (CURRENT_ROLE === 'editor') {
+    body.querySelectorAll('[data-field]').forEach((input) => {
+      input.addEventListener('change', async () => {
+        const field = input.dataset.field;
+        const value = field === 'name' ? input.value : Number(input.value);
+        try {
+          await api(`/api/budget/${input.dataset.id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ [field]: value }),
+          });
+          await refreshBudget();
+          await renderLastUpdate();
+        } catch (e) {
+          alert(e.message);
+        }
+      });
+    });
+    body.querySelectorAll('[data-budget-id]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('این ردیف حذف شود؟')) return;
+        await api(`/api/budget/${btn.dataset.budgetId}`, { method: 'DELETE' });
+        await refreshBudget();
+        await renderLastUpdate();
+      });
+    });
+  }
+}
+
+// ---------------- Notes (single free-text box) ----------------
+async function loadNotes() {
+  const notes = await api('/api/notes');
+  const text = (notes && notes.general) || '';
+  document.getElementById('notesView_general').textContent = text || '—';
+  document.getElementById('notesEdit_general').value = text;
+}
+
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 function wireEvents() {
   document.getElementById('applyFilterBtn').addEventListener('click', refresh);
 
+  // logout
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     await api('/api/logout', { method: 'POST' });
     window.location.href = '/index.html';
   });
 
+  // transaction modal
   const txForm = document.getElementById('txForm');
   document.getElementById('openTxFormBtn').addEventListener('click', () => openModal('modalBackdrop'));
   document.getElementById('openTxFormBtn2').addEventListener('click', () => openModal('modalBackdrop'));
@@ -289,6 +383,7 @@ function wireEvents() {
     }
   });
 
+  // bank modal
   const bankForm = document.getElementById('bankForm');
   document.getElementById('addBankBtn').addEventListener('click', () => {
     document.getElementById('bankModalTitle').textContent = 'افزودن بانک';
@@ -314,6 +409,51 @@ function wireEvents() {
     }
   });
 
+  // budget modal
+  const budgetForm = document.getElementById('budgetForm');
+  document.getElementById('addBudgetBtn').addEventListener('click', () => {
+    budgetForm.reset();
+    openModal('budgetModalBackdrop');
+  });
+  document.getElementById('closeBudgetFormBtn').addEventListener('click', () => closeModal('budgetModalBackdrop'));
+  document.getElementById('cancelBudgetFormBtn').addEventListener('click', () => closeModal('budgetModalBackdrop'));
+  budgetForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(budgetForm);
+    try {
+      await api('/api/budget', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: fd.get('name'),
+          expense: Number(fd.get('expense')),
+          financing: Number(fd.get('financing')),
+        }),
+      });
+      closeModal('budgetModalBackdrop');
+      budgetForm.reset();
+      await refreshBudget();
+      await renderLastUpdate();
+    } catch (err) {
+      alert(err.message);
+    }
+  });
+
+  // notes save
+  document.getElementById('notesSave_general').addEventListener('click', async () => {
+    const text = document.getElementById('notesEdit_general').value;
+    try {
+      await api('/api/notes/general', {
+        method: 'PUT',
+        body: JSON.stringify({ text }),
+      });
+      document.getElementById('notesView_general').textContent = text || '—';
+      await renderLastUpdate();
+    } catch (err) {
+      alert(err.message);
+    }
+  });
+
+  // change password modal
   const pwForm = document.getElementById('pwForm');
   const pwError = document.getElementById('pwFormError');
   const pwSuccess = document.getElementById('pwFormSuccess');
@@ -351,7 +491,10 @@ function wireEvents() {
     }
   });
 
+  // print
   document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+  // export excel
   document.getElementById('exportBtn').addEventListener('click', exportExcel);
 }
 
@@ -371,6 +514,13 @@ function exportExcel() {
   });
   const wsTx = XLSX.utils.aoa_to_sheet(txRows);
   XLSX.utils.book_append_sheet(wb, wsTx, 'تراکنش‌ها');
+
+  const budgetRows = [['محل تامین مالی', 'مصارف شعبه', 'تامین مالی', 'مانده']];
+  LAST_BUDGET.forEach((r) => {
+    budgetRows.push([r.name, r.expense, r.financing, r.financing - r.expense]);
+  });
+  const wsBudget = XLSX.utils.aoa_to_sheet(budgetRows);
+  XLSX.utils.book_append_sheet(wb, wsBudget, 'بودجه نقدی');
 
   XLSX.writeFile(wb, 'گزارش-مالی-پترو-صنعت-جنوب.xlsx');
 }
