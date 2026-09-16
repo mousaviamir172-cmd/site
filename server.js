@@ -15,6 +15,8 @@ const FILES = {
   banks: path.join(DATA_DIR, 'banks.json'),
   transactions: path.join(DATA_DIR, 'transactions.json'),
   meta: path.join(DATA_DIR, 'meta.json'),
+  notes: path.join(DATA_DIR, 'notes.json'),
+  budget: path.join(DATA_DIR, 'budget.json'),
 };
 
 function ensureFile(file, fallback) {
@@ -23,6 +25,8 @@ function ensureFile(file, fallback) {
 ensureFile(FILES.transactions, []);
 ensureFile(FILES.banks, []);
 ensureFile(FILES.meta, { lastUpdate: null });
+ensureFile(FILES.notes, { general: '' });
+ensureFile(FILES.budget, []);
 
 function readJSON(file) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { return null; }
@@ -217,7 +221,7 @@ const server = http.createServer((req, res) => {
   }
 
   // All routes below require a valid session
-  const protectedApi = pathname.startsWith('/api/banks') || pathname.startsWith('/api/transactions') || pathname === '/api/summary' || pathname === '/api/meta';
+  const protectedApi = pathname.startsWith('/api/banks') || pathname.startsWith('/api/transactions') || pathname === '/api/summary' || pathname === '/api/meta' || pathname.startsWith('/api/notes') || pathname.startsWith('/api/budget');
   if (protectedApi) {
     const sess = getSession(req);
     if (!sess) return sendJSON(res, 401, { error: 'لازم است ابتدا وارد شوید' });
@@ -225,6 +229,63 @@ const server = http.createServer((req, res) => {
     const isWrite = req.method === 'POST' || req.method === 'PUT' || req.method === 'DELETE';
     if (isWrite && sess.role !== 'editor') {
       return sendJSON(res, 403, { error: 'شما فقط دسترسی مشاهده دارید' });
+    }
+
+    // ---- notes (single free-text note, no length limit) ----
+    if (pathname === '/api/notes' && req.method === 'GET') {
+      return sendJSON(res, 200, readJSON(FILES.notes) || { general: '' });
+    }
+    if (pathname === '/api/notes/general' && req.method === 'PUT') {
+      return collectBody(req, (err, body) => {
+        if (err) return sendJSON(res, 400, { error: 'داده نامعتبر است' });
+        const notes = readJSON(FILES.notes) || {};
+        notes.general = String(body.text || '');
+        writeJSON(FILES.notes, notes);
+        touchMeta();
+        return sendJSON(res, 200, notes);
+      });
+    }
+
+    // ---- budget table (editable like banks) ----
+    if (pathname === '/api/budget' && req.method === 'GET') {
+      return sendJSON(res, 200, readJSON(FILES.budget));
+    }
+    if (pathname === '/api/budget' && req.method === 'POST') {
+      return collectBody(req, (err, body) => {
+        if (err) return sendJSON(res, 400, { error: 'داده نامعتبر است' });
+        const rows = readJSON(FILES.budget);
+        const row = {
+          id: 'g' + Date.now().toString(36),
+          name: String(body.name || 'ردیف جدید').slice(0, 150),
+          expense: Number(body.expense) || 0,
+          financing: Number(body.financing) || 0,
+        };
+        rows.push(row);
+        writeJSON(FILES.budget, rows);
+        touchMeta();
+        return sendJSON(res, 201, row);
+      });
+    }
+    const budgetMatch = pathname.match(/^\/api\/budget\/([a-zA-Z0-9]+)$/);
+    if (budgetMatch && req.method === 'PUT') {
+      return collectBody(req, (err, body) => {
+        if (err) return sendJSON(res, 400, { error: 'داده نامعتبر است' });
+        const rows = readJSON(FILES.budget);
+        const idx = rows.findIndex((r) => r.id === budgetMatch[1]);
+        if (idx === -1) return sendJSON(res, 404, { error: 'ردیف یافت نشد' });
+        if (body.name !== undefined) rows[idx].name = String(body.name).slice(0, 150);
+        if (body.expense !== undefined) rows[idx].expense = Number(body.expense) || 0;
+        if (body.financing !== undefined) rows[idx].financing = Number(body.financing) || 0;
+        writeJSON(FILES.budget, rows);
+        touchMeta();
+        return sendJSON(res, 200, rows[idx]);
+      });
+    }
+    if (budgetMatch && req.method === 'DELETE') {
+      const rows = readJSON(FILES.budget).filter((r) => r.id !== budgetMatch[1]);
+      writeJSON(FILES.budget, rows);
+      touchMeta();
+      return sendJSON(res, 200, { ok: true });
     }
 
     // ---- meta ----
